@@ -232,7 +232,7 @@ def main():
     print(f"Maximum characters in a line: {Fore.BLUE}{len(clean_text(stats['max_chars_line']))}")
     print(f"Lines with maximum length ({len(clean_text(stats['max_chars_line']))} characters): {Fore.BLUE}{len(stats['longest_lines'])}")
     for num, line in stats['longest_lines']:
-        print(f"  {Fore.YELLOW}- Line {num}:{Style.RESET_ALL} {clean_text(line)}")
+        print(f"  {Fore.YELLOW}- Line {num}:\t{Style.RESET_ALL} {clean_text(line)}")
 
     long_lines_set, line_contents = stats['lines_with_more_than_42_chars']
     if line_contents:
@@ -268,28 +268,31 @@ def main():
 
     if stats['overlaps']:
         print("------------------------------------------")
-        print("\nOVERLAPPING LINES DETECTED:\n")
         counter = 0
+        for overlap_info in stats['overlaps']:
+            counter += 1
+        print(f"\nOVERLAPPING LINES DETECTED: {Fore.BLUE}{counter}\n")
+        counter = 1
         for overlap_info in stats['overlaps']:
             subtitle1, start1, end1 = overlap_info[0]
             subtitle2, start2, end2 = overlap_info[1]
             overlap_duration = overlap_info[2]
 
-            print(f"{Fore.RED}First subtitle ({subtitle1[3]}):")
+            print(f"{Fore.BLUE}{counter}")
+            counter += 1
+            print(f"{Fore.RED}1th subtitle {Fore.YELLOW}(line {subtitle1[3]}){Style.RESET_ALL}:")
             print(f"Time: {Fore.BLUE}{format_timedelta(start1)}{Style.RESET_ALL} --> {Fore.BLUE}{format_timedelta(end1)}")
             for text_line in subtitle1[2]:
                 print(f"  {clean_text(text_line)} {Fore.GREEN}({len(clean_text(text_line))})")
             
-            print(f"\n{Fore.RED}Second subtitle ({subtitle2[3]}):")
+            print(f"\n{Fore.RED}2nd subtitle {Fore.YELLOW}(line {subtitle2[3]}){Style.RESET_ALL}:")
             print(f"Time: {Fore.BLUE}{format_timedelta(start2)}{Style.RESET_ALL} --> {Fore.BLUE}{format_timedelta(end2)}")
             for text_line in subtitle2[2]:
                 print(f"  {clean_text(text_line)} {Fore.GREEN}({len(clean_text(text_line))})")
             
-            print(f"\nOverlap duration: {Fore.BLUE}{format_timedelta(overlap_duration)}")
-            print("\n" + "-" * 50 + "\n")
-            counter += 1
-            
-        print(f"Total of overlaps: {Fore.BLUE}{counter}\n")
+            print(f"\nOverlap duration: {Fore.RED}{format_timedelta(overlap_duration)}")
+            print(f"Overlap time: {Fore.BLUE}{format_timedelta(start2)}{Style.RESET_ALL} --> {Fore.BLUE}{format_timedelta(end1)}")
+            print("\n" + "- " * 10 + "\n")
     else:
         print("\n------------------------------------------")
         print(f"\n{Fore.GREEN}No overlapping lines detected.\n")
