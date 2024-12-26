@@ -65,8 +65,17 @@ def format_timedelta(td):
 def calculate_statistics(subtitles):
     """Calculate statistics from the subtitles."""
     num_lines = len(subtitles)
+    start_time = subtitles[0][0] if subtitles else timedelta(0)  # Get the first subtitle's start time
     total_duration = subtitles[-1][1] if subtitles else timedelta(0)
     total_display_time = sum((end - start for start, end, _, _, _ in subtitles), timedelta(0))
+    
+    # Calculate total time without subtitles
+    total_time_without_subtitles = total_duration - total_display_time
+    
+    # Calculate percentages
+    total_seconds = total_duration.total_seconds()
+    display_percentage = (total_display_time.total_seconds() / total_seconds * 100) if total_seconds > 0 else 0
+    without_subtitles_percentage = (total_time_without_subtitles.total_seconds() / total_seconds * 100) if total_seconds > 0 else 0
 
     # Line count statistics
     single_lines = []
@@ -146,8 +155,12 @@ def calculate_statistics(subtitles):
 
     return {
         "num_lines": num_lines,
+        "start_time": start_time,  # Added start time
         "total_duration": total_duration,
         "total_display_time": total_display_time,
+        "total_time_without_subtitles": total_time_without_subtitles,  # Added time without subtitles
+        "display_percentage": display_percentage,  # Added display percentage
+        "without_subtitles_percentage": without_subtitles_percentage,  # Added without subtitles percentage
         "total_words": total_words,
         "total_characters": total_characters,
         "avg_words_per_line": avg_words_per_line,
@@ -183,17 +196,16 @@ def main():
     print()
     print(f"Number of lines: {Fore.BLUE}{stats['num_lines']}")
     print()
-    print(f"Subtitle ends at: {Fore.BLUE}{stats['total_duration']}")
-    print(f"Subtitles starts at: {Fore.RED}IMPLEMENTAR")
+    print(f"Subtitles starts at: {Fore.BLUE}{format_timedelta(stats['start_time'])}")
+    print(f"Subtitle ends at:    {Fore.BLUE}{format_timedelta(stats['total_duration'])}")
     print()
-    print(f"Total subtitle display time: {Fore.BLUE}{stats['total_display_time']}")
-    print(f"Total time without subtitles: {Fore.RED}IMPLEMENTAR")
-    print(f"percentages: {Fore.RED}IMPLEMENTAR")
+    print(f"Total subtitle display time:  {Fore.BLUE}{format_timedelta(stats['total_display_time'])}  {Fore.CYAN}({stats['display_percentage']:.1f}%)")
+    print(f"Total time without subtitles: {Fore.BLUE}{format_timedelta(stats['total_time_without_subtitles'])}  {Fore.CYAN}({stats['without_subtitles_percentage']:.1f}%)")
     print()
     print(f"Single lines: {Fore.BLUE}{len(stats['single_lines'])}")
     print(f"Double lines: {Fore.BLUE}{len(stats['double_lines'])}")
     print(f"Triple lines: {Fore.BLUE}{len(stats['triple_lines'])}")
-    print(f"Quadruple or more lines: {Fore.BLUE}{len(stats['quadruple_lines'])}")
+    print(f"Quadruple+ lines: {Fore.BLUE}{len(stats['quadruple_lines'])}")
     print()
     if stats['triple_lines']:
         print(f"Triple line numbers:")
@@ -212,21 +224,20 @@ def main():
     print(f"Average duration per line: {Fore.BLUE}{stats['avg_duration']}")
     print()
     print(f"Shortest line duration: {Fore.BLUE}{stats['min_duration']}")
-    print(f"Longest line duration: {Fore.BLUE}{stats['max_duration']}")
+    print(f"Longest line duration:  {Fore.BLUE}{stats['max_duration']}")
     print()
-    print(f"Reading rate (words/sec): {Fore.BLUE}{stats['reading_rate_words']:.2f}")
+    print(f"Reading rate (words/sec):      {Fore.BLUE}{stats['reading_rate_words']:.2f}")
     print(f"Reading rate (characters/sec): {Fore.BLUE}{stats['reading_rate_chars']:.2f}")
     print()
     print(f"Maximum characters in a line: {Fore.BLUE}{len(clean_text(stats['max_chars_line']))}")
     print(f"Lines with maximum length ({len(clean_text(stats['max_chars_line']))} characters): {Fore.BLUE}{len(stats['longest_lines'])}")
     for num, line in stats['longest_lines']:
         print(f"  {Fore.YELLOW}- Line {num}:{Style.RESET_ALL} {clean_text(line)}")
-    
 
     long_lines_set, line_contents = stats['lines_with_more_than_42_chars']
     if line_contents:
         print("\n------------------------------------------")
-        print(f"\n{Fore.YELLOW}LINES{Style.RESET_ALL} WITH MORE THAN 42 {Fore.GREEN}CHARACTERS{Style.RESET_ALL}:\n")
+        print(f"\n{Fore.YELLOW}LINES{Style.RESET_ALL} WITH MORE THAN 42 {Fore.GREEN}CHARACTERS{Style.RESET_ALL}: {Fore.BLUE}{len(long_lines_set)}\n")
         for line_num, text_lines in line_contents:
             print(f"{Fore.YELLOW}({line_num})\t{Style.RESET_ALL}", end=" ")
             first_line = True
@@ -236,7 +247,6 @@ def main():
                 print(f"{line} {Fore.GREEN}({len(line)})")
                 first_line = False
             print()
-        print(f"Total of lines with more than 42 characters: {Fore.BLUE}{len(long_lines_set)}")
     else:
         print("\n------------------------------------------")
         print(f"\n{Fore.GREEN}No lines with more than 42 characters detected")
@@ -253,9 +263,8 @@ def main():
             print()
         print(f"Total lines with less than 1s duration: {Fore.BLUE}{len(stats['short_duration_lines'])}")
     else:
-        print("\n------------------------------------------")     
+        print("------------------------------------------")     
         print(f"\n{Fore.GREEN}No lines with less than 1 second detected.")
-
 
     if stats['overlaps']:
         print("------------------------------------------")
